@@ -1,0 +1,18 @@
+{% for post in posts %}
+    <div class="post">
+        <div class="meta">👤 {{ post[1] }}｜🕒 {{ post[3] }}</div>
+        <div class="content">{{ post[2] }}</div>
+        {% if post[4] %}
+            <div>
+                <img src="{{ url_for('uploaded_file', filename=post[4]) }}"
+                     style="max-width:100%; margin-top:10px; border-radius:8px;">
+            </div>
+        {% endif %}
+        {% if post[1] == user %}
+            <div class="actions">
+                <a href="/edit/{{ post[0] }}">✏️ 編輯</a>
+                <a href="/delete/{{ post[0] }}" onclick="return confirm('確定要刪除嗎？');">❌ 刪除</a>
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>家庭留言板</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #4a4a4a;
+        }
+        form {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ddd;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            resize: vertical;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 1em;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .logout {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .logout a {
+            color: #888;
+            text-decoration: none;
+        }
+        .logout a:hover {
+            color: #000;
+        }
+        .post {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+        }
+        .post .meta {
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 5px;
+        }
+        .post .actions {
+            text-align: right;
+            font-size: 0.9em;
+        }
+        .post .actions a {
+            margin-left: 10px;
+            color: #888;
+            text-decoration: none;
+        }
+        .post .actions a:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>家庭留言板</h1>
+
+    <div class="logout">
+        👤 已登入：{{ user }}｜<a href="/logout">登出</a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label>留言內容：</label><br>
+        <textarea name="content" rows="4" placeholder="輸入留言..." maxlength="500" required></textarea><br><br>
+
+        <label>上傳圖片：</label>
+        <input type="file" name="image" accept="image/*" id="image-input"><br>
+        <div id="image-preview" style="margin-top:10px;"></div>
+
+        <button type="submit">送出留言</button>
+    </form>
+
+    <!-- ✅ 留言列表區塊 -->
+    <div id="post-list">
+        {% include "_post_list.html" %}
+    </div>
+
+    <!-- ✅ JavaScript 自動刷新 + 圖片預覽 -->
+    <script>
+    function refreshPosts() {
+        fetch("/posts")
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById("post-list").innerHTML = html;
+            });
+    }
+
+    setInterval(refreshPosts, 15000); // 每 15 秒更新留言
+
+    // ✅ 圖片預覽功能
+    document.getElementById("image-input").addEventListener("change", function(event) {
+        const preview = document.getElementById("image-preview");
+        preview.innerHTML = "";
+        const file = event.target.files[0];
+
+        if (file && file.type.startsWith("image/")) {
+            const img = document.createElement("img");
+            img.style.maxWidth = "100%";
+            img.style.marginTop = "10px";
+            img.style.borderRadius = "8px";
+            img.src = URL.createObjectURL(file);
+            preview.appendChild(img);
+        }
+    });
+    </script>
+</body>
+</html>
