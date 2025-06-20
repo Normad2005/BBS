@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>家庭留言板</title>
+    <title>癢挺君和他的家人朋友</title>
     <style>
         body {
             font-family: "Segoe UI", sans-serif;
@@ -40,9 +40,14 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            transition: all 0.2s ease-in-out; /* ✅ 加入動畫過渡 */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
         }
+
         button:hover {
+            transform: scale(1.05);  /* ✅ 放大一點點 */
             background-color: #45a049;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);  /* ✅ 陰影加深 */
         }
         .logout {
             text-align: right;
@@ -58,9 +63,13 @@
         .post {
             background-color: #fff;
             padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); 
+            transition: box-shadow 0.3s ease;
+        }
+        .post:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18); 
         }
         .post .meta {
             font-size: 0.9em;
@@ -82,13 +91,13 @@
     </style>
 </head>
 <body>
-    <h1>家庭留言板</h1>
+    <h1>Jim's bbs</h1>
 
     <div class="logout">
         👤 已登入：{{ user }}｜<a href="/logout">登出</a>
     </div>
 
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data" id="post-form">
         <label>留言內容：</label><br>
         <textarea name="content" rows="4" placeholder="輸入留言..." maxlength="500" required></textarea><br><br>
 
@@ -96,7 +105,8 @@
         <input type="file" name="image" accept="image/*" id="image-input"><br>
         <div id="image-preview" style="margin-top:10px;"></div>
 
-        <button type="submit">送出留言</button>
+        <button type="button" onclick="submitPost()">送出留言</button>
+        <button type="button" onclick="clearMainForm()">clear</button>
     </form>
 
     <!-- ✅ 留言列表區塊 -->
@@ -114,7 +124,7 @@
             });
     }
 
-    setInterval(refreshPosts, 15000); // 每 15 秒更新留言
+    setInterval(refreshPosts, 300000); //    每 15 秒更新留言
 
     // ✅ 圖片預覽功能
     document.getElementById("image-input").addEventListener("change", function(event) {
@@ -132,5 +142,76 @@
         }
     });
     </script>
+
+    <script>
+        function showReplyForm(postId) {
+            // 隱藏所有回覆表單
+            document.querySelectorAll(".reply-form").forEach(form => {
+                form.style.display = "none";
+            });
+
+            // 顯示指定那一則的回覆表單
+            const form = document.getElementById("reply-form-" + postId);
+            if (form) {
+                form.style.display = "block";
+            }
+        }
+        function clearMainForm() {
+            const form = document.querySelector("form");
+            form.reset(); // 清除所有欄位（文字、檔案）
+            document.getElementById("image-preview").innerHTML = ""; // 清除圖片預覽
+        }
+        function submitPost() {
+            const form = document.getElementById("post-form");
+            const formData = new FormData(form);
+
+            fetch("/", {
+                method: "POST",
+                body: formData
+            }).then(response => {
+                if (response.redirected) {
+                    refreshPosts(); // 更新留言區
+                    form.reset();   // 清空輸入
+                    document.getElementById("image-preview").innerHTML = ""; // 清空圖片預覽
+                }
+            });
+        }
+    </script> 
+    <script>
+        function submitReply(postId) {
+            const form = document.getElementById("reply-form-" + postId);
+            const formData = new FormData(form);
+
+            fetch("/", {
+                method: "POST",
+                body: formData
+            }).then(response => {
+                if (response.redirected) {
+                    refreshPosts(); // 更新留言
+                    form.reset(); // 清空表單
+                    form.style.display = "none"; // 隱藏回覆表單
+                }
+            });
+        }
+    </script>
+    <script>
+        function clearReplyForm(postId) {
+            const form = document.getElementById("reply-form-" + postId);
+            form.reset();              // 清空輸入欄
+            form.style.display = "none"; // 隱藏表單
+        }
+        function deletePost(postId) {
+            if (!confirm("確定要刪除嗎？")) return;
+
+            fetch(`/delete/${postId}`, {
+                method: "GET"
+            }).then(response => {
+                if (response.redirected) {
+                    refreshPosts(); 
+                }
+            });
+        }
+    </script>
+
 </body>
 </html>
