@@ -1,18 +1,32 @@
-{% for post in posts %}
-    <div class="post">
-        <div class="meta">👤 {{ post[1] }}｜🕒 {{ post[3] }}</div>
-        <div class="content">{{ post[2] }}</div>
-        {% if post[4] %}
-            <div>
-                <img src="{{ url_for('uploaded_file', filename=post[4]) }}"
-                     style="max-width:100%; margin-top:10px; border-radius:8px;">
-            </div>
+{% for post in posts recursive %}
+    <div class="post" style="margin-left: {{ loop.depth0 * 20 }}px;">
+        <div class="meta">👤 {{ post.user }}｜ {{ post.time_ago }}</div>
+        <div class="content">{{ post.content | nl2br }}</div>
+
+        {% if post.image %}
+            <img src="{{ url_for('uploaded_file', filename=post.image) }}"
+                 style="max-width:100%; border-radius:8px; margin-top:8px;">
         {% endif %}
-        {% if post[1] == user %}
-            <div class="actions">
-                <a href="/edit/{{ post[0] }}">✏️ 編輯</a>
-                <a href="/delete/{{ post[0] }}" onclick="return confirm('確定要刪除嗎？');">❌ 刪除</a>
-            </div>
+
+        <div class="actions">
+            <a href="#" onclick="showReplyForm({{ post.id }}); return false;">回覆</a>
+            {% if post.user == user %}
+                <a href="/edit/{{ post.id }}">編輯</a>
+                <a href="#" onclick="deletePost({{ post.id }}); return false;">刪除</a>
+            {% endif %}
+        </div>
+
+        <!-- ✅ 回覆表單（隱藏） -->
+        <form method="POST" enctype="multipart/form-data" class="reply-form" id="reply-form-{{ post.id }}" style="display:none; margin-top:10px;">
+            <input type="hidden" name="parent_id" value="{{ post.id }}">
+            <textarea name="content" rows="2" placeholder="回覆內容..." required></textarea><br>
+            <input type="file" name="image" accept="image/*"><br>
+            <button type="button" onclick="submitReply({{ post.id }})">送出回覆</button>
+            <button type="button" onclick="clearReplyForm({{ post.id }})">clear</button>
+        </form>
+
+        {% if post.replies %}
+            {{ loop(post.replies) }}
         {% endif %}
     </div>
 {% endfor %}
